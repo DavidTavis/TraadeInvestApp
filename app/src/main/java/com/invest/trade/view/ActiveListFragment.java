@@ -3,6 +3,7 @@ package com.invest.trade.view;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -25,6 +26,14 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
+import static android.R.attr.offset;
 
 /**
  * Created by TechnoA on 24.10.2017.
@@ -39,6 +48,8 @@ public class ActiveListFragment extends Fragment {
     private ListView activeListView;
     private ArrayList<Active> actives;
 
+    private Timer timer;
+    private TimerTask parsingTimerTask;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,11 +63,50 @@ public class ActiveListFragment extends Fragment {
 
         activeListView = (ListView) view.findViewById(R.id.list_actives);
 
-        ParsingTask task = new ParsingTask();
-        task.execute();
+        callAsynchronousTask();
 
         return view;
 
+    }
+
+    private void callAsynchronousTask() {
+
+        final Handler handler = new Handler();
+        timer = new Timer();
+        parsingTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        try {
+                            ParsingTask parsingTask = new ParsingTask();
+                            parsingTask.execute();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        };
+        timer.schedule(parsingTimerTask, 0, 1000); //execute in every 5000 ms
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Utils.log("onDestroy()");
+        cancelSchedule();
+    }
+
+    private void cancelSchedule() {
+        if(timer!=null){
+            timer.cancel();
+            timer=null;
+        }
+        if(parsingTimerTask!=null){
+            parsingTimerTask.cancel();
+            parsingTimerTask = null;
+        }
     }
 
     private class ParsingTask extends AsyncTask<Void,Void,ArrayList<Active>>{
