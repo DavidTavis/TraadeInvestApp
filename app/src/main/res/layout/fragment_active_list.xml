@@ -1,0 +1,59 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#171717" >
+
+    <RelativeLayout
+        android:id="@+id/description"
+        android:orientation="horizontal"
+        android:background="#171717"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:paddingLeft="30dp"
+            android:text="ASSETS"
+            android:textColor="#D5D5D5"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="RATE"
+            android:textColor="#D5D5D5"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:paddingRight="30dp"
+            android:text="CHANGE"
+            android:textColor="#D5D5D5"/>
+
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/line"
+        android:layout_width="match_parent"
+        android:layout_below="@+id/description"
+        android:layout_height="2px"
+        android:background="#262626"
+        android:layout_gravity="bottom"
+        android:paddingBottom="5dp">
+    </View>
+
+    <ListView
+        android:id="@+id/list_actives"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/line"
+        android:scrollbarStyle="outsideOverlay" />
+
+</RelativeLayout>
