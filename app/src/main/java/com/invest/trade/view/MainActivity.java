@@ -7,64 +7,125 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import com.invest.trade.R;
+import com.invest.trade.data.model.Active;
+import com.invest.trade.data.repository.ActivesRepository;
+import com.invest.trade.util.HtmlParser;
+import com.invest.trade.util.Utils;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-    private static final String SAVE_INSTANCE_ID = "fragment_item_id";
+/**
+ * Created by TechnoA on 25.10.2017.
+ */
+
+public class MainActivity extends AppCompatActivity implements ActivityCallback{
+
+    private static final String PAGE_URL = "https://trade.tradeinvest90.com/trade/iframe?view=table";
+    private static final String SAVE_BUNDLE_INSTANCE_ID = "save_bundle_instance_id";
+    public static final int TIME_UPDATE = 1000;
+
     private Fragment contentFragment;
     private ActiveListFragment activeListFragment;
     private FragmentManager fragmentManager;
+
+    private ActivesRepository repository;
+    private ScheduledThreadPoolExecutor executor;
+    private HtmlParser parser;
+
+    private ArrayList<Active> listActives;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        repository = new ActivesRepository(this);
         fragmentManager = getSupportFragmentManager();
 
-        handleOrientationChanged(savedInstanceState);
+        initView(savedInstanceState);
 
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startLoading();
+    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        stopLoading();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         if (contentFragment instanceof ChartFragment) {
-            outState.putString(SAVE_INSTANCE_ID, ChartFragment.ARG_ITEM_ID);
+            outState.putString(SAVE_BUNDLE_INSTANCE_ID, ChartFragment.ARG_ITEM_ID);
         } else {
-            outState.putString(SAVE_INSTANCE_ID, ActiveListFragment.ARG_ITEM_ID);
+            outState.putString(SAVE_BUNDLE_INSTANCE_ID, ActiveListFragment.ARG_ITEM_ID);
         }
         super.onSaveInstanceState(outState);
-    }
 
+    }
     @Override
     public void onBackPressed() {
-        FragmentManager fm = getSupportFragmentManager();
-        if (fm.getBackStackEntryCount() > 0) {
+
+        if (fragmentManager.getBackStackEntryCount() > 0) {
             super.onBackPressed();
-        } else if (contentFragment instanceof ActiveListFragment || fm.getBackStackEntryCount() == 0) {
+        } else if (contentFragment instanceof ActiveListFragment || fragmentManager.getBackStackEntryCount() == 0) {
             finish();
+        }
+
+        if (contentFragment instanceof ChartFragment){
+            contentFragment = fragmentManager.findFragmentByTag(ActiveListFragment.ARG_ITEM_ID);
+        }
+
+    }
+
+    public void startLoading() {
+        executor = new ScheduledThreadPoolExecutor(1);
+        executor.scheduleWithFixedDelay(new ParserRunnable(), 0, TIME_UPDATE, TimeUnit.MILLISECONDS);
+    }
+
+    public void stopLoading() {
+        if(executor!=null)
+            executor.shutdown();
+    }
+
+    private class ParserRunnable implements Runnable{
+        @Override
+        public void run() {
+            parser = new HtmlParser(PAGE_URL);
+            listActives = parser.getListActives();
+            if(listActives!=null && listActives.size()!=0){
+                repository.addActives(listActives);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(contentFragment instanceof ActiveListFragment) {
+                            ((ActiveListFragment) contentFragment).hideProgressBar();
+                            ((ActiveListFragment) contentFragment).showListView(listActives);
+                        }
+                    }
+                });
+            }
         }
     }
 
-    private void handleOrientationChanged(Bundle savedInstanceState) {
+    private void initView(Bundle savedInstanceState) {
         if (savedInstanceState != null) {
-            if (savedInstanceState.containsKey(SAVE_INSTANCE_ID)) {
-
-                String content = savedInstanceState.getString(SAVE_INSTANCE_ID);
-
-                if (content.equals(ActiveListFragment.ARG_ITEM_ID)) {
-                    if (fragmentManager.findFragmentByTag(ActiveListFragment.ARG_ITEM_ID) != null) {
-//                        setFragmentTitle(R.string.add_contact);
-                        activeListFragment = (ActiveListFragment) fragmentManager.findFragmentByTag(ActiveListFragment.ARG_ITEM_ID);
-                        contentFragment = activeListFragment;
-                    }
-                }else if(content.equals(ChartFragment.ARG_ITEM_ID)){
-                    contentFragment = fragmentManager.findFragmentByTag(ChartFragment.ARG_ITEM_ID);
+            String instanceID = savedInstanceState.getString(SAVE_BUNDLE_INSTANCE_ID);
+            if (instanceID.equals(ActiveListFragment.ARG_ITEM_ID)) {
+                if (fragmentManager.findFragmentByTag(ActiveListFragment.ARG_ITEM_ID) != null) {
+                    activeListFragment = (ActiveListFragment) fragmentManager.findFragmentByTag(ActiveListFragment.ARG_ITEM_ID);
+                    contentFragment = activeListFragment;
                 }
+            } else if (instanceID.equals(ChartFragment.ARG_ITEM_ID)) {
+                contentFragment = fragmentManager.findFragmentByTag(ChartFragment.ARG_ITEM_ID);
             }
-
         } else {
             activeListFragment = new ActiveListFragment();
-//            setFragmentTitle(R.string.app_name);
             switchContent(activeListFragment, ActiveListFragment.ARG_ITEM_ID);
         }
     }
@@ -83,6 +144,15 @@ public class MainActivity extends AppCompatActivity {
             transaction.commit();
             contentFragment = fragment;
         }
+    }
+    @Override
+    public void startChartFragment(Active active) {
+        ChartFragment chartFragment = new ChartFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(ChartFragment.BUNDLE_ACTIVE_KEY,active);
+        bundle.putSerializable(ChartFragment.BUNDLE_LIST_ACTIVES_KEY,listActives);
+        chartFragment.setArguments(bundle);
+        switchContent(chartFragment, ChartFragment.ARG_ITEM_ID);
     }
 
 }

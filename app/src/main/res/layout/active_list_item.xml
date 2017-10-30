@@ -56,8 +56,18 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
-            android:paddingRight="30dp"
+            android:paddingRight="45dp"
             android:textColor="#D5D5D5"/>
+        <ImageButton
+            android:id="@+id/ib_forward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/chevron_right"
+            android:layout_toLeftOf="@+id/tv_change"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:paddingRight="15dp"
+            android:paddingLeft="20dp"/>
 
     </RelativeLayout>
 

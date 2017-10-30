@@ -1,18 +1,24 @@
-package com.invest.trade.adapter;
+package com.invest.trade.view.adapter;
 
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.invest.trade.R;
-import com.invest.trade.model.Active;
+import com.invest.trade.data.model.Active;
+import com.invest.trade.view.ActiveListFragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,11 +29,13 @@ public class ActiveAdapter extends ArrayAdapter<Active> {
 
     private Context context;
     private List<Active> activeList;
+    private ActiveListFragment fragment;
 
-    public ActiveAdapter(@NonNull Context context, List<Active> activeList) {
+    public ActiveAdapter(@NonNull Context context, List<Active> activeList, ActiveListFragment fragment) {
         super(context,  R.layout.active_list_item, activeList);
         this.context = context;
         this.activeList = activeList;
+        this.fragment = fragment;
     }
 
     private class ViewHolder {
@@ -36,6 +44,7 @@ public class ActiveAdapter extends ArrayAdapter<Active> {
         TextView tvRate2;
         TextView tvRate3;
         TextView tvChange;
+        ImageButton ibForward;
     }
 
     @Override
@@ -56,7 +65,17 @@ public class ActiveAdapter extends ArrayAdapter<Active> {
             holder.tvRate2 = (TextView) convertView.findViewById(R.id.tv_rate2);
             holder.tvRate3 = (TextView) convertView.findViewById(R.id.tv_rate3);
             holder.tvChange = (TextView) convertView.findViewById(R.id.tv_change);
+            holder.ibForward = (ImageButton) convertView.findViewById(R.id.ib_forward);
 
+            holder.ibForward.setTag(position);
+            holder.ibForward.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = (Integer) v.getTag();
+                    Active currentActive = getItem(position);
+                    fragment.startChartFragment(currentActive);
+                }
+            });
             convertView.setTag(holder);
 
         } else {
@@ -119,5 +138,10 @@ public class ActiveAdapter extends ArrayAdapter<Active> {
         activeList.remove(active);
         notifyDataSetChanged();
         super.remove(active);
+    }
+
+    public void setActiveList(ArrayList<Active> activeList){
+        this.activeList = activeList;
+        notifyDataSetChanged();
     }
 }

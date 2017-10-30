@@ -49,6 +49,13 @@
         android:paddingBottom="5dp">
     </View>
 
+    <ProgressBar
+        android:id="@+id/pb"
+        android:visibility="gone"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerInParent="true"/>
+
     <ListView
         android:id="@+id/list_actives"
         android:layout_width="match_parent"

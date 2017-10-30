@@ -1,4 +1,4 @@
-package com.invest.trade.model;
+package com.invest.trade.data.model;
 
 import android.graphics.Color;
 
@@ -14,17 +14,10 @@ public class Active implements Serializable {
     private String assets;
     private String currentRate;
     private String change;
+    private String timestamp;
     private boolean bigSymbols;
 
     public Active() {
-    }
-
-    public Active(String assets, String currentRate, String change, String color, Boolean bigSymbols) {
-        this.assets = assets;
-        this.currentRate = currentRate;
-        this.change = change;
-        this.color = color;
-        this.bigSymbols = bigSymbols;
     }
 
     public String getAssets() {
@@ -51,6 +44,14 @@ public class Active implements Serializable {
         this.change = change;
     }
 
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
+    }
+
     public String getColor() {
         return color;
     }
@@ -67,6 +68,7 @@ public class Active implements Serializable {
         this.bigSymbols = bigSymbols;
     }
 
+
     @Override
     public String toString() {
         return "Active{" +
@@ -74,6 +76,7 @@ public class Active implements Serializable {
                 ", assets='" + assets + '\'' +
                 ", currentRate='" + currentRate + '\'' +
                 ", change='" + change + '\'' +
+                ", timestamp='" + timestamp + '\'' +
                 ", bigSymbols=" + bigSymbols +
                 '}';
     }
